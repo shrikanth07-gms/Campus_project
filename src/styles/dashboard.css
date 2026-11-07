@@ -1,5 +1,6 @@
 /* =====================================================================
-   CAMPUSFLOW DESIGN SYSTEM & DASHBOARD STYLES
+   ROUTEPULSE DESIGN SYSTEM & DASHBOARD STYLES
+   Fast, trackable approvals from submission to signature.
    Linear / Stripe inspired clean aesthetic
    ===================================================================== */
 
@@ -555,6 +556,7 @@ body {
 .status-in_progress { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
 .status-correction_required { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
 .status-rejected { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.status-physical_signature { background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
 .status-forwarded { background: #fae8ff; color: #86198f; border: 1px solid #f5d0fe; }
 .status-approved { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
 .status-completed { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }

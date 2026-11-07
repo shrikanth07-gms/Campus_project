@@ -61,6 +61,10 @@ export default function Home() {
             <span> Simplified.</span>
           </h1>
 
+          <p style={{ fontSize: '18px', color: '#2563eb', fontWeight: 600, margin: '8px 0 12px' }}>
+            Fast, trackable approvals from submission to signature.
+          </p>
+
           <p>
             Submit documents, connect with faculty, track approvals and manage your university paperwork, all in one place.
           </p>
@@ -101,7 +105,7 @@ export default function Home() {
 
                       <div className="college-details">
                         <h3>{college.name}</h3>
-                        <p>{college.location} • Available on CampusFlow</p>
+                        <p>{college.location} • Available on RoutePulse</p>
                       </div>
 
                       <ArrowRight size={20} />
@@ -152,11 +156,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* HOW CAMPUSFLOW WORKS */}
+      {/* HOW ROUTEPULSE WORKS */}
       <section id="how-it-works" style={{ padding: '80px 9%', backgroundColor: '#ffffff', borderTop: '1px solid #f1f5f9' }}>
         <div className="section-heading">
           <span>WORKFLOW SIMPLIFIED</span>
-          <h2>How CampusFlow Works</h2>
+          <h2>How RoutePulse Works</h2>
           <p>
             Eliminating long queues, physical visits, and missing paperwork through transparent digital approval pipelines.
           </p>
@@ -277,7 +281,7 @@ export default function Home() {
       {/* BENEFITS FOR STUDENTS & FACULTY */}
       <section style={{ padding: '80px 9%', backgroundColor: '#f8fafc' }}>
         <div className="section-heading">
-          <span>WHY CAMPUSFLOW</span>
+          <span>WHY ROUTEPULSE</span>
           <h2>Designed for Every Campus Stakeholder</h2>
         </div>
 
@@ -345,14 +349,14 @@ export default function Home() {
       {/* ABOUT & TRANSPARENCY NOTICE */}
       <section className="about-section" id="about">
         <div>
-          <span>CAMPUSFLOW PLATFORM</span>
+          <span>ROUTEPULSE PLATFORM</span>
           <h2>Less paperwork. More progress.</h2>
           <p>
-            CampusFlow connects students, faculty, and departments through one centralized document management platform, engineered for institutional security and privacy.
+            RoutePulse connects students, faculty, and departments through one centralized document management platform, engineered for institutional security and privacy.
           </p>
           <div style={{ marginTop: '20px', padding: '14px 18px', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #dce5f5', fontSize: '13px', color: '#64748b' }}>
             <Info size={16} color="#2563eb" style={{ display: 'inline', marginRight: '6px' }} />
-            <strong>Institutional Notice:</strong> The initial deployment profile supports REVA University, Bengaluru, Karnataka, India. CampusFlow is an independent document management system architected for extensible multi-university adoption.
+            <strong>Institutional Notice:</strong> The initial deployment profile supports REVA University, Bengaluru, Karnataka, India. RoutePulse is an independent document management system architected for extensible multi-university adoption.
           </div>
         </div>
 

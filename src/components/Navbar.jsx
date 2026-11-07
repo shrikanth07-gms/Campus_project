@@ -8,11 +8,16 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to="/" className="brand">
+      <Link to="/" className="brand" title="RoutePulse — Fast, trackable approvals from submission to signature.">
         <div className="brand-icon">
           <GraduationCap size={27} />
         </div>
-        <span>Campus<span className="brand-highlight">Flow</span></span>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ lineHeight: 1.1 }}>Route<span className="brand-highlight">Pulse</span></span>
+          <span className="brand-tagline" style={{ fontSize: '11px', color: '#64748b', fontWeight: 500, letterSpacing: '-0.1px', marginTop: '2px' }}>
+            Fast, trackable approvals from submission to signature.
+          </span>
+        </div>
       </Link>
 
       <div className={`nav-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>

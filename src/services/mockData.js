@@ -1,5 +1,6 @@
 // =====================================================================
-// CampusFlow: Mock & Seed Data (REVA University, Bengaluru)
+// RoutePulse: Mock & Seed Data (REVA University, Bengaluru)
+// Fast, trackable approvals from submission to signature.
 // Clearly labelled demonstration data for testing & offline evaluation.
 // =====================================================================
 
@@ -82,6 +83,7 @@ export const DEMO_BRANCHES = [
 ];
 
 export const DEMO_FACULTY = [
+  // CSE (branch-1, dept-1)
   {
     id: "fac-1",
     college_id: DEMO_COLLEGE.id,
@@ -90,7 +92,10 @@ export const DEMO_FACULTY = [
     department_id: "dept-1",
     department_name: "School of Computing & Information Technology",
     branch_id: "branch-1",
+    branch_name: "Computer Science and Engineering",
     designation: "Class Coordinator / Assistant Professor",
+    role: "faculty",
+    phone: "+91 94481 12345",
     office_location: "SOCIT Block, 3rd Floor, Room 304",
     is_available: true,
     is_verified: true
@@ -103,7 +108,10 @@ export const DEMO_FACULTY = [
     department_id: "dept-1",
     department_name: "School of Computing & Information Technology",
     branch_id: "branch-1",
+    branch_name: "Computer Science and Engineering",
     designation: "Head of Department (HOD)",
+    role: "hod",
+    phone: "+91 98800 23456",
     office_location: "SOCIT Block, Ground Floor, Room 101",
     is_available: true,
     is_verified: true
@@ -116,11 +124,64 @@ export const DEMO_FACULTY = [
     department_id: "dept-1",
     department_name: "School of Computing & Information Technology",
     branch_id: "branch-1",
+    branch_name: "Computer Science and Engineering",
     designation: "Director - School of CIT",
+    role: "director",
+    phone: "+91 99001 34567",
     office_location: "Administrative Block, Floor 2, Director Suite",
     is_available: true,
     is_verified: true
   },
+  // AI-DS (branch-2, dept-1)
+  {
+    id: "fac-6",
+    college_id: DEMO_COLLEGE.id,
+    name: "Dr. Arvind Swamy (Demo Faculty)",
+    email: "arvind.swamy.demo@reva.edu.in",
+    department_id: "dept-1",
+    department_name: "School of Computing & Information Technology",
+    branch_id: "branch-2",
+    branch_name: "Artificial Intelligence & Data Science",
+    designation: "Class Coordinator - AI & Data Science",
+    role: "faculty",
+    phone: "+91 97412 88990",
+    office_location: "SOCIT Block, 2nd Floor, AI Lab Suite",
+    is_available: true,
+    is_verified: true
+  },
+  {
+    id: "fac-7",
+    college_id: DEMO_COLLEGE.id,
+    name: "Dr. Suresh Kumar (Demo HOD - SOCIT)",
+    email: "suresh.kumar.demo@reva.edu.in",
+    department_id: "dept-1",
+    department_name: "School of Computing & Information Technology",
+    branch_id: "branch-2",
+    branch_name: "Artificial Intelligence & Data Science",
+    designation: "Head of Department (HOD)",
+    role: "hod",
+    phone: "+91 98800 23456",
+    office_location: "SOCIT Block, Ground Floor, Room 101",
+    is_available: true,
+    is_verified: true
+  },
+  {
+    id: "fac-8",
+    college_id: DEMO_COLLEGE.id,
+    name: "Dr. Ramesh Chandra (Demo Director - CIT)",
+    email: "ramesh.chandra.demo@reva.edu.in",
+    department_id: "dept-1",
+    department_name: "School of Computing & Information Technology",
+    branch_id: "branch-2",
+    branch_name: "Artificial Intelligence & Data Science",
+    designation: "Director - School of CIT",
+    role: "director",
+    phone: "+91 99001 34567",
+    office_location: "Administrative Block, Floor 2, Director Suite",
+    is_available: true,
+    is_verified: true
+  },
+  // ECE (branch-3, dept-2)
   {
     id: "fac-4",
     college_id: DEMO_COLLEGE.id,
@@ -129,8 +190,109 @@ export const DEMO_FACULTY = [
     department_id: "dept-2",
     department_name: "School of Electronics & Communication Engineering",
     branch_id: "branch-3",
+    branch_name: "Electronics & Communication Engineering",
     designation: "Class Coordinator - ECE",
+    role: "faculty",
+    phone: "+91 91122 33445",
     office_location: "ECE Block, 2nd Floor, Room 208",
+    is_available: true,
+    is_verified: true
+  },
+  {
+    id: "fac-9",
+    college_id: DEMO_COLLEGE.id,
+    name: "Dr. Manjunath Hegde (Demo HOD - ECE)",
+    email: "manjunath.hegde.demo@reva.edu.in",
+    department_id: "dept-2",
+    department_name: "School of Electronics & Communication Engineering",
+    branch_id: "branch-3",
+    branch_name: "Electronics & Communication Engineering",
+    designation: "Head of Department (HOD) - ECE",
+    role: "hod",
+    phone: "+91 98450 77123",
+    office_location: "ECE Block, Ground Floor, Room 102",
+    is_available: true,
+    is_verified: true
+  },
+  {
+    id: "fac-10",
+    college_id: DEMO_COLLEGE.id,
+    name: "Dr. K. S. Narayanaswamy (Demo Director - ECE)",
+    email: "narayanaswamy.demo@reva.edu.in",
+    department_id: "dept-2",
+    department_name: "School of Electronics & Communication Engineering",
+    branch_id: "branch-3",
+    branch_name: "Electronics & Communication Engineering",
+    designation: "Director - School of ECE",
+    role: "director",
+    phone: "+91 98451 99887",
+    office_location: "ECE Block, 3rd Floor, Dean Suite",
+    is_available: true,
+    is_verified: true
+  },
+  // Mechanical (branch-4, dept-3)
+  {
+    id: "fac-11",
+    college_id: DEMO_COLLEGE.id,
+    name: "Prof. Raghuveer Reddy (Demo Faculty)",
+    email: "raghuveer.reddy.demo@reva.edu.in",
+    department_id: "dept-3",
+    department_name: "School of Mechanical Engineering",
+    branch_id: "branch-4",
+    branch_name: "Mechanical Engineering",
+    designation: "Class Coordinator - Mechanical",
+    role: "faculty",
+    phone: "+91 97401 22334",
+    office_location: "Mechanical Block, 1st Floor, Room 114",
+    is_available: true,
+    is_verified: true
+  },
+  {
+    id: "fac-12",
+    college_id: DEMO_COLLEGE.id,
+    name: "Dr. B. P. Sharma (Demo HOD - MECH)",
+    email: "bp.sharma.demo@reva.edu.in",
+    department_id: "dept-3",
+    department_name: "School of Mechanical Engineering",
+    branch_id: "branch-4",
+    branch_name: "Mechanical Engineering",
+    designation: "Head of Department (HOD) - Mechanical",
+    role: "hod",
+    phone: "+91 99800 11223",
+    office_location: "Mechanical Block, Ground Floor, Room 105",
+    is_available: true,
+    is_verified: true
+  },
+  // MBA (branch-5, dept-4)
+  {
+    id: "fac-13",
+    college_id: DEMO_COLLEGE.id,
+    name: "Dr. Meenakshi Sundaram (Demo Faculty)",
+    email: "meenakshi.s.demo@reva.edu.in",
+    department_id: "dept-4",
+    department_name: "School of Management Studies",
+    branch_id: "branch-5",
+    branch_name: "Master of Business Administration",
+    designation: "Class Coordinator - MBA",
+    role: "faculty",
+    phone: "+91 96200 44556",
+    office_location: "SOM Block, 2nd Floor, Room 212",
+    is_available: true,
+    is_verified: true
+  },
+  {
+    id: "fac-14",
+    college_id: DEMO_COLLEGE.id,
+    name: "Dr. Shubha A. (Demo HOD - Management)",
+    email: "shubha.a.demo@reva.edu.in",
+    department_id: "dept-4",
+    department_name: "School of Management Studies",
+    branch_id: "branch-5",
+    branch_name: "Master of Business Administration",
+    designation: "Head of Department (HOD) - Management",
+    role: "hod",
+    phone: "+91 98860 55667",
+    office_location: "SOM Block, 1st Floor, Room 101",
     is_available: true,
     is_verified: true
   },
@@ -142,7 +304,10 @@ export const DEMO_FACULTY = [
     department_id: "dept-1",
     department_name: "School of Computing & Information Technology",
     branch_id: "branch-1",
+    branch_name: "Central Administration",
     designation: "Administrative Officer",
+    role: "admin",
+    phone: "+91 80 4696 6966",
     office_location: "Student Affairs Centre, Counter 4",
     is_available: true,
     is_verified: true
@@ -294,7 +459,7 @@ export const DEMO_PRESET_USERS = {
   admin: {
     id: "user-admin-1",
     email: "admin.office.demo@reva.edu.in",
-    full_name: "CampusFlow REVA Admin",
+    full_name: "RoutePulse REVA Admin",
     role: "admin",
     designation: "Chief University Administrator",
     phone: "+91 80 4696 6966",

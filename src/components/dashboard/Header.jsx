@@ -31,9 +31,9 @@ export default function Header({ onToggleSidebar }) {
           <Menu size={22} />
         </button>
 
-        <div className="header-university-pill">
+        <div className="header-university-pill" title="RoutePulse: Fast, trackable approvals from submission to signature.">
           <span className="dot"></span>
-          <span>REVA University Portal</span>
+          <span>REVA University • RoutePulse</span>
         </div>
       </div>
 

@@ -921,14 +921,22 @@ FOR SELECT USING (
 
 -- =====================================================================
 -- STORAGE BUCKET & STORAGE RLS POLICIES
--- Supabase Storage: 'submission-documents' (Strictly Private)
+-- Supabase Storage: 'student-documents' & 'submission-documents' (Strictly Private)
 -- =====================================================================
 
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'storage' AND tablename = 'buckets') THEN
         INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-        VALUES (
+        VALUES 
+        (
+            'student-documents',
+            'student-documents',
+            false, -- STRICTLY PRIVATE
+            15728640, -- 15MB limit
+            ARRAY['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png']
+        ),
+        (
             'submission-documents',
             'submission-documents',
             false, -- STRICTLY PRIVATE
@@ -952,7 +960,7 @@ BEGIN
         CREATE POLICY "Submission documents storage select" ON storage.objects
         FOR SELECT TO authenticated
         USING (
-            bucket_id = 'submission-documents'
+            bucket_id IN ('submission-documents', 'student-documents')
             AND (
                 -- Object name format: <college_id>/<submission_id>/<file_name>
                 EXISTS (
@@ -972,7 +980,7 @@ BEGIN
         CREATE POLICY "Submission documents storage insert" ON storage.objects
         FOR INSERT TO authenticated
         WITH CHECK (
-            bucket_id = 'submission-documents'
+            bucket_id IN ('submission-documents', 'student-documents')
             AND (
                 EXISTS (
                     SELECT 1 FROM public.submissions s

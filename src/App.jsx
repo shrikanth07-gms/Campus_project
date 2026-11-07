@@ -21,6 +21,7 @@ import NotificationsPage from './pages/student/NotificationsPage';
 import StudentProfile from './pages/student/StudentProfile';
 
 // Faculty Pages
+import FacultyDashboard from './pages/faculty/FacultyDashboard';
 import FacultyOverview from './pages/faculty/FacultyOverview';
 import AssignedSubmissions from './pages/faculty/AssignedSubmissions';
 import ReviewSubmission from './pages/faculty/ReviewSubmission';
@@ -119,6 +120,26 @@ function App() {
               {/* Faculty Routes */}
               <Route
                 path="/faculty"
+                element={
+                  <ProtectedRoute allowedRoles={['faculty', 'hod', 'director']}>
+                    <DashboardLayout>
+                      <FacultyDashboard />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/faculty/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['faculty', 'hod', 'director']}>
+                    <DashboardLayout>
+                      <FacultyDashboard />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/faculty/overview"
                 element={
                   <ProtectedRoute allowedRoles={['faculty', 'hod', 'director']}>
                     <DashboardLayout>

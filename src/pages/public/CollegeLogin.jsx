@@ -144,7 +144,7 @@ export default function CollegeLogin() {
             fontWeight: 600
           }}
         >
-          <ArrowLeft size={16} /> Back to CampusFlow Home
+          <ArrowLeft size={16} /> Back to RoutePulse Home
         </Link>
 
         <span style={{ fontSize: '12px', color: 'var(--gray-500)', fontWeight: 600 }}>

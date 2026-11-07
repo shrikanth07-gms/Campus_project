@@ -51,7 +51,7 @@ export default function AdminOverview() {
         <div className="page-title-group">
           <h1>University Analytics & Workflow Performance</h1>
           <p>
-            CampusFlow Central Administration — REVA University, Bengaluru. Real-time document velocity, approval rates, and department throughput.
+            RoutePulse Central Administration — REVA University, Bengaluru. Real-time document velocity, approval rates, and department throughput.
           </p>
         </div>
       </div>

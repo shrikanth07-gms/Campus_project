@@ -57,7 +57,7 @@ export function AuthProvider({ children }) {
   };
 
   const loadStoredDemoUser = () => {
-    const saved = localStorage.getItem('campusflow_current_user');
+    const saved = localStorage.getItem('routepulse_current_user') || localStorage.getItem('campusflow_current_user');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -65,6 +65,7 @@ export function AuthProvider({ children }) {
         setProfile(parsed);
         return;
       } catch {
+        localStorage.removeItem('routepulse_current_user');
         localStorage.removeItem('campusflow_current_user');
       }
     }
@@ -72,7 +73,7 @@ export function AuthProvider({ children }) {
     const defaultStudent = DEMO_PRESET_USERS.student;
     setUser(defaultStudent);
     setProfile(defaultStudent);
-    localStorage.setItem('campusflow_current_user', JSON.stringify(defaultStudent));
+    localStorage.setItem('routepulse_current_user', JSON.stringify(defaultStudent));
   };
 
   // Student Registration
@@ -115,13 +116,17 @@ export function AuthProvider({ children }) {
         };
 
         // Save into registered students list
-        const storedStudents = JSON.parse(localStorage.getItem('campusflow_registered_students') || '[]');
+        const storedStudents = JSON.parse(
+          localStorage.getItem('routepulse_registered_students') ||
+          localStorage.getItem('campusflow_registered_students') ||
+          '[]'
+        );
         storedStudents.push({ ...newStudent, password });
-        localStorage.setItem('campusflow_registered_students', JSON.stringify(storedStudents));
+        localStorage.setItem('routepulse_registered_students', JSON.stringify(storedStudents));
 
         setUser(newStudent);
         setProfile(newStudent);
-        localStorage.setItem('campusflow_current_user', JSON.stringify(newStudent));
+        localStorage.setItem('routepulse_current_user', JSON.stringify(newStudent));
         setLoading(false);
         return { success: true, user: newStudent };
       }
@@ -151,7 +156,11 @@ export function AuthProvider({ children }) {
       } else {
         // Demo Mode Check: check preset users or registered students
         const allPresets = Object.values(DEMO_PRESET_USERS);
-        const registered = JSON.parse(localStorage.getItem('campusflow_registered_students') || '[]');
+        const registered = JSON.parse(
+          localStorage.getItem('routepulse_registered_students') ||
+          localStorage.getItem('campusflow_registered_students') ||
+          '[]'
+        );
         const candidate = [...allPresets, ...registered].find(u => u.email.toLowerCase() === email.toLowerCase());
 
         if (candidate) {
@@ -160,7 +169,7 @@ export function AuthProvider({ children }) {
           }
           setUser(candidate);
           setProfile(candidate);
-          localStorage.setItem('campusflow_current_user', JSON.stringify(candidate));
+          localStorage.setItem('routepulse_current_user', JSON.stringify(candidate));
           setLoading(false);
           return { success: true };
         } else {
@@ -181,7 +190,7 @@ export function AuthProvider({ children }) {
     if (selected) {
       setUser(selected);
       setProfile(selected);
-      localStorage.setItem('campusflow_current_user', JSON.stringify(selected));
+      localStorage.setItem('routepulse_current_user', JSON.stringify(selected));
     }
   };
 
@@ -190,6 +199,7 @@ export function AuthProvider({ children }) {
     if (isSupabaseConfigured && supabase) {
       await supabase.auth.signOut();
     }
+    localStorage.removeItem('routepulse_current_user');
     localStorage.removeItem('campusflow_current_user');
     setUser(null);
     setProfile(null);

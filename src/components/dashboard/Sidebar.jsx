@@ -32,11 +32,16 @@ export default function Sidebar({ isOpen, onClose }) {
   return (
     <aside className={`dashboard-sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-brand">
-        <Link to="/" className="brand-link">
+        <Link to="/" className="brand-link" title="RoutePulse — Fast, trackable approvals from submission to signature.">
           <div className="brand-badge-icon">
             <GraduationCap size={22} />
           </div>
-          <span>Campus<span style={{ color: 'var(--primary-600)' }}>Flow</span></span>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ lineHeight: 1.15, fontSize: '18px', fontWeight: 800 }}>Route<span style={{ color: 'var(--primary-600)' }}>Pulse</span></span>
+            <span style={{ fontSize: '10px', color: 'var(--gray-500)', fontWeight: 500, letterSpacing: '-0.2px' }}>
+              Fast, trackable approvals
+            </span>
+          </div>
         </Link>
         <button
           className="mobile-menu-toggle"
@@ -125,11 +130,11 @@ export default function Sidebar({ isOpen, onClose }) {
             <div className="nav-section-title">Reviewer Portal</div>
             <Link
               to="/faculty"
-              className={`sidebar-nav-item ${isActive('/faculty') ? 'active' : ''}`}
+              className={`sidebar-nav-item ${isActive('/faculty') || isActive('/faculty/dashboard') ? 'active' : ''}`}
               onClick={onClose}
             >
               <LayoutDashboard size={18} />
-              <span>Overview</span>
+              <span>Review Dashboard</span>
             </Link>
             <Link
               to="/faculty/submissions"

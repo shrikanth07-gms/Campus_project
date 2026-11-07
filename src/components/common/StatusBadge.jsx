@@ -39,6 +39,11 @@ export function StatusBadge({ status }) {
       icon: XCircle,
       className: 'status-rejected'
     },
+    physical_signature: {
+      label: 'Physical Signature Required',
+      icon: FileCheck,
+      className: 'status-physical_signature'
+    },
     forwarded: {
       label: 'Forwarded',
       icon: ArrowRightCircle,

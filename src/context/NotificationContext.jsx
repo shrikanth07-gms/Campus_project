@@ -9,7 +9,7 @@ export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('campusflow_notifications');
+    const saved = localStorage.getItem('routepulse_notifications') || localStorage.getItem('campusflow_notifications');
     if (saved) {
       try {
         setNotifications(JSON.parse(saved));
@@ -19,12 +19,12 @@ export function NotificationProvider({ children }) {
       }
     }
     setNotifications(INITIAL_NOTIFICATIONS);
-    localStorage.setItem('campusflow_notifications', JSON.stringify(INITIAL_NOTIFICATIONS));
+    localStorage.setItem('routepulse_notifications', JSON.stringify(INITIAL_NOTIFICATIONS));
   }, []);
 
   const saveNotifications = (newList) => {
     setNotifications(newList);
-    localStorage.setItem('campusflow_notifications', JSON.stringify(newList));
+    localStorage.setItem('routepulse_notifications', JSON.stringify(newList));
   };
 
   const addNotification = ({ title, message, link, type = 'info', targetUserId = null, targetRole = null }) => {

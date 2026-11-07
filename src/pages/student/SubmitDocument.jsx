@@ -10,16 +10,29 @@ import {
   Clock,
   Calendar,
   CheckCircle,
-  HelpCircle,
   ArrowLeft,
-  X
+  X,
+  User,
+  Shield,
+  Building,
+  GitBranch,
+  Send,
+  Flame,
+  CalendarDays
 } from 'lucide-react';
 
 export default function SubmitDocument() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
-  const { departments, branches, facultyDirectory, documentTypes, createSubmission } = useDocuments();
+  const {
+    departments,
+    branches,
+    facultyDirectory,
+    documentTypes,
+    getFacultyForBranch,
+    createSubmission
+  } = useDocuments();
 
   // Form State
   const [title, setTitle] = useState('');
@@ -31,7 +44,7 @@ export default function SubmitDocument() {
   const [file, setFile] = useState(null);
   const [message, setMessage] = useState('');
   const [deadline, setDeadline] = useState('');
-  const [priority, setPriority] = useState('this_week');
+  const [priority, setPriority] = useState('this_week'); // 'urgent' | 'this_week' | 'this_month'
   const [requiresPhysicalSignature, setRequiresPhysicalSignature] = useState(false);
 
   // Status & Validation
@@ -39,7 +52,7 @@ export default function SubmitDocument() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileError, setFileError] = useState(null);
 
-  // Prepopulate from query parameters if coming from Faculty Directory
+  // Initialize department & branch defaults
   useEffect(() => {
     const prefillFacultyId = searchParams.get('facultyId');
     if (prefillFacultyId) {
@@ -49,10 +62,26 @@ export default function SubmitDocument() {
         if (foundFac.department_id) setDepartmentId(foundFac.department_id);
         if (foundFac.branch_id) setBranchId(foundFac.branch_id);
       }
-    } else if (departments.length > 0 && !departmentId) {
-      setDepartmentId(departments[0].id);
+    } else {
+      if (departments.length > 0 && !departmentId) {
+        setDepartmentId(departments[0].id);
+      }
     }
   }, [searchParams, facultyDirectory, departments]);
+
+  // When department changes, default to first branch of that department if available
+  useEffect(() => {
+    if (departmentId) {
+      const deptsBranches = branches.filter(b => b.department_id === departmentId);
+      if (deptsBranches.length > 0 && (!branchId || !deptsBranches.some(b => b.id === branchId))) {
+        setBranchId(deptsBranches[0].id);
+      }
+    }
+  }, [departmentId, branches]);
+
+  // 1. Dynamic Branch & Faculty Filtering
+  const availableBranches = branches.filter(b => !departmentId || b.department_id === departmentId);
+  const availableFaculty = getFacultyForBranch(branchId, departmentId);
 
   // Handle Document Type change: auto-configure default priority & signature requirements
   const handleDocTypeChange = (e) => {
@@ -66,10 +95,6 @@ export default function SubmitDocument() {
       }
     }
   };
-
-  // Filter branches and faculty based on selected department
-  const filteredBranches = branches.filter(b => !departmentId || b.department_id === departmentId);
-  const filteredFaculty = facultyDirectory.filter(f => !departmentId || f.department_id === departmentId);
 
   // Handle File Input
   const handleFileChange = (e) => {
@@ -119,12 +144,16 @@ export default function SubmitDocument() {
       setError('Please select the receiving department.');
       return;
     }
+    if (!branchId) {
+      setError('Please select your academic branch.');
+      return;
+    }
     if (!assignedFacultyId) {
-      setError('Please select an authorized faculty member or authority.');
+      setError('Please select an authorized faculty member, HOD, or Director.');
       return;
     }
     if (!file) {
-      setError('Please attach the required document file.');
+      setError('Please attach the required document file (PDF or DOCX).');
       return;
     }
 
@@ -154,31 +183,55 @@ export default function SubmitDocument() {
   };
 
   return (
-    <div style={{ maxWidth: '860px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '880px', margin: '0 auto' }}>
       {/* Top Header */}
       <div className="page-header">
         <div className="page-title-group">
-          <Link to="/student" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--primary-600)', textDecoration: 'none', marginBottom: '8px' }}>
+          <Link
+            to="/student"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '13px',
+              color: 'var(--primary-600)',
+              textDecoration: 'none',
+              marginBottom: '8px'
+            }}
+          >
             <ArrowLeft size={14} /> Back to Dashboard
           </Link>
-          <h1>Submit Document for Approval</h1>
+          <h1>Submit Document for University Approval</h1>
           <p>
-            Create an independent submission with tracking, deadline, priority, and direct faculty routing.
+            Route academic documents to authorized Faculty, HODs, and Directors at REVA University.
           </p>
         </div>
       </div>
 
       {error && (
-        <div style={{ padding: '14px 18px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: 'var(--radius-md)', color: '#b91c1c', marginBottom: '22px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div
+          style={{
+            padding: '14px 18px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 'var(--radius-md)',
+            color: '#b91c1c',
+            marginBottom: '22px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}
+        >
           <AlertCircle size={18} />
           <span>{error}</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="dashboard-card" style={{ padding: '30px' }}>
-        {/* Section 1: Document Details */}
+        {/* Section 1: Document Classification */}
         <div style={{ borderBottom: '1px solid var(--gray-200)', paddingBottom: '24px', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--gray-900)', marginBottom: '18px' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--gray-900)', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <FilePlus size={18} color="var(--primary-600)" />
             1. Document Classification
           </h3>
 
@@ -199,7 +252,7 @@ export default function SubmitDocument() {
 
             <div className="form-group">
               <label className="form-label">
-                Document Type <span className="required">*</span>
+                Document Category / Type <span className="required">*</span>
               </label>
               <select
                 className="form-control"
@@ -210,7 +263,7 @@ export default function SubmitDocument() {
                 <option value="">-- Select Document Type --</option>
                 {documentTypes.map((type) => (
                   <option key={type.id} value={type.id}>
-                    {type.name}
+                    {type.name} ({type.code})
                   </option>
                 ))}
               </select>
@@ -221,31 +274,31 @@ export default function SubmitDocument() {
             <label className="form-label">Purpose / Description</label>
             <textarea
               className="form-control"
-              placeholder="Provide context regarding this document request..."
+              placeholder="State the academic purpose or context of this document..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+              rows={2}
             />
           </div>
         </div>
 
-        {/* Section 2: Department & Authority Routing */}
+        {/* Section 2: Dynamic Branch & Faculty Selection */}
         <div style={{ borderBottom: '1px solid var(--gray-200)', paddingBottom: '24px', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--gray-900)', marginBottom: '18px' }}>
-            2. Routing & Receiving Authority
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--gray-900)', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Building size={18} color="var(--primary-600)" />
+            2. Department, Branch & Recipient Authority
           </h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px', marginBottom: '16px' }}>
             <div className="form-group">
               <label className="form-label">
-                Department <span className="required">*</span>
+                Select Department / School <span className="required">*</span>
               </label>
               <select
                 className="form-control"
                 value={departmentId}
                 onChange={(e) => {
                   setDepartmentId(e.target.value);
-                  setBranchId('');
                   setAssignedFacultyId('');
                 }}
                 required
@@ -260,93 +313,228 @@ export default function SubmitDocument() {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Branch / Specialization</label>
-              <select
-                className="form-control"
-                value={branchId}
-                onChange={(e) => setBranchId(e.target.value)}
-              >
-                <option value="">-- Select Branch (Optional) --</option>
-                {filteredBranches.map((br) => (
-                  <option key={br.id} value={br.id}>
-                    {br.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
               <label className="form-label">
-                Select Faculty / Authority <span className="required">*</span>
+                Select Academic Branch <span className="required">*</span>
               </label>
               <select
                 className="form-control"
-                value={assignedFacultyId}
-                onChange={(e) => setAssignedFacultyId(e.target.value)}
+                value={branchId}
+                onChange={(e) => {
+                  setBranchId(e.target.value);
+                  setAssignedFacultyId('');
+                }}
                 required
               >
-                <option value="">-- Select Faculty / Reviewer --</option>
-                {filteredFaculty.map((fac) => (
-                  <option key={fac.id} value={fac.id}>
-                    {fac.name} — {fac.designation}
+                <option value="">-- Select Branch --</option>
+                {availableBranches.map((br) => (
+                  <option key={br.id} value={br.id}>
+                    {br.name} ({br.code})
                   </option>
                 ))}
               </select>
             </div>
           </div>
+
+          {/* Recipient Authority Dropdown */}
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">
+              Select Recipient Authority (Faculty, HOD, Director) <span className="required">*</span>
+            </label>
+            <select
+              className="form-control"
+              value={assignedFacultyId}
+              onChange={(e) => setAssignedFacultyId(e.target.value)}
+              required
+            >
+              <option value="">-- Select Registered Authority for this Branch --</option>
+              {availableFaculty.map((fac) => {
+                let roleTag = '[Faculty]';
+                if (fac.designation?.toLowerCase().includes('director') || fac.role === 'director') roleTag = '[Director]';
+                else if (fac.designation?.toLowerCase().includes('hod') || fac.designation?.toLowerCase().includes('head') || fac.role === 'hod') roleTag = '[HOD]';
+                else if (fac.designation?.toLowerCase().includes('coordinator')) roleTag = '[Class Coordinator]';
+
+                return (
+                  <option key={fac.id} value={fac.id}>
+                    {roleTag} {fac.name} — {fac.designation} ({fac.office_location || 'Campus'})
+                  </option>
+                );
+              })}
+            </select>
+            <div style={{ fontSize: '12px', color: 'var(--gray-500)', marginTop: '6px' }}>
+              Populated dynamically based on your branch and department selection.
+            </div>
+          </div>
         </div>
 
-        {/* Section 3: Priority, Deadline & Physical Signature */}
+        {/* Section 3: Priority Tagging & Individual Deadline Picker */}
         <div style={{ borderBottom: '1px solid var(--gray-200)', paddingBottom: '24px', marginBottom: '24px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--gray-900)', marginBottom: '18px' }}>
-            3. Workflow Priority & Requirements
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--gray-900)', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Clock size={18} color="var(--primary-600)" />
+            3. Submission Priority & Deadline
           </h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+            {/* Priority Selector with Visual Tags */}
             <div className="form-group">
-              <label className="form-label">Priority</label>
-              <select
-                className="form-control"
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-              >
-                <option value="urgent">🔴 Urgent (Immediate Attention)</option>
-                <option value="this_week">🟡 This Week (Normal Processing)</option>
-                <option value="this_month">🟢 This Month (Standard Routine)</option>
-              </select>
+              <label className="form-label">
+                Priority Level <span className="required">*</span>
+              </label>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: `1.5px solid ${priority === 'urgent' ? '#ef4444' : '#e2e8f0'}`,
+                    backgroundColor: priority === 'urgent' ? '#fef2f2' : '#ffffff',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="priorityRadio"
+                    value="urgent"
+                    checked={priority === 'urgent'}
+                    onChange={() => setPriority('urgent')}
+                  />
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#dc2626',
+                      backgroundColor: '#fee2e2',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      border: '1px solid #fca5a5'
+                    }}
+                  >
+                    <Flame size={13} /> URGENT (Red tag)
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>Time-sensitive action</span>
+                </label>
+
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: `1.5px solid ${priority === 'this_week' ? '#f59e0b' : '#e2e8f0'}`,
+                    backgroundColor: priority === 'this_week' ? '#fffbeb' : '#ffffff',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="priorityRadio"
+                    value="this_week"
+                    checked={priority === 'this_week'}
+                    onChange={() => setPriority('this_week')}
+                  />
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#d97706',
+                      backgroundColor: '#fef3c7',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      border: '1px solid #fde68a'
+                    }}
+                  >
+                    <Clock size={13} /> THIS WEEK (Yellow tag)
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>Standard processing</span>
+                </label>
+
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    border: `1.5px solid ${priority === 'this_month' ? '#10b981' : '#e2e8f0'}`,
+                    backgroundColor: priority === 'this_month' ? '#ecfdf5' : '#ffffff',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="priorityRadio"
+                    value="this_month"
+                    checked={priority === 'this_month'}
+                    onChange={() => setPriority('this_month')}
+                  />
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      color: '#15803d',
+                      backgroundColor: '#dcfce7',
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      border: '1px solid #86efac'
+                    }}
+                  >
+                    <CalendarDays size={13} /> THIS MONTH (Green tag)
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>Routine request</span>
+                </label>
+              </div>
             </div>
 
+            {/* Individual Datetime Deadline Picker */}
             <div className="form-group">
-              <label className="form-label">Target Completion Deadline</label>
+              <label className="form-label">
+                Required Completion Deadline (Datetime)
+              </label>
               <input
-                type="date"
+                type="datetime-local"
                 className="form-control"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
               />
-            </div>
+              <div style={{ fontSize: '12px', color: 'var(--gray-500)', marginTop: '6px' }}>
+                Specify target date and time for review completion.
+              </div>
 
-            <div className="form-group">
-              <label className="form-label">Physical Signature Required?</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', height: '44px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    name="sigRequired"
-                    checked={requiresPhysicalSignature === true}
-                    onChange={() => setRequiresPhysicalSignature(true)}
-                  />
-                  Yes (In-person)
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', cursor: 'pointer' }}>
-                  <input
-                    type="radio"
-                    name="sigRequired"
-                    checked={requiresPhysicalSignature === false}
-                    onChange={() => setRequiresPhysicalSignature(false)}
-                  />
-                  No (Digital Only)
-                </label>
+              {/* Physical Signature Option */}
+              <div style={{ marginTop: '20px' }}>
+                <label className="form-label">Physical In-Person Signature</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', height: '40px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="sigOption"
+                      checked={requiresPhysicalSignature === true}
+                      onChange={() => setRequiresPhysicalSignature(true)}
+                    />
+                    Yes (Physical verification required)
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="sigOption"
+                      checked={requiresPhysicalSignature === false}
+                      onChange={() => setRequiresPhysicalSignature(false)}
+                    />
+                    No (Digital clearance only)
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -354,13 +542,14 @@ export default function SubmitDocument() {
 
         {/* Section 4: File Upload & Initial Message */}
         <div style={{ marginBottom: '28px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--gray-900)', marginBottom: '18px' }}>
-            4. Attach Document & Message
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--gray-900)', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <UploadCloud size={18} color="var(--primary-600)" />
+            4. Document File Upload & Initial Message
           </h3>
 
           <div className="form-group">
             <label className="form-label">
-              Upload Document File <span className="required">*</span>
+              Upload Document File (PDF / DOCX) <span className="required">*</span>
             </label>
 
             {!file ? (
@@ -375,10 +564,10 @@ export default function SubmitDocument() {
                   <UploadCloud size={28} />
                 </div>
                 <div style={{ fontWeight: 600, fontSize: '14px', color: 'var(--gray-800)' }}>
-                  Click to browse or drag and drop your file here
+                  Click to select file or drag and drop your document here
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--gray-400)', marginTop: '6px' }}>
-                  Supported formats: PDF, DOCX, DOC, JPG, PNG (Max: 15MB)
+                  Uploaded to private bucket <strong>student-documents</strong> (PDF, DOCX, DOC, JPG, PNG up to 15MB)
                 </div>
               </label>
             ) : (
@@ -394,7 +583,7 @@ export default function SubmitDocument() {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <FileCheck size={24} color="var(--primary-600)" />
+                  <FileCheck size={26} color="var(--primary-600)" />
                   <div>
                     <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--gray-900)' }}>
                       {file.name}
@@ -423,14 +612,19 @@ export default function SubmitDocument() {
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">Message / Note to Faculty Reviewer</label>
+            <label className="form-label">
+              Initial Message / Note to Faculty Recipient
+            </label>
             <textarea
               className="form-control"
-              placeholder="Add any specific context, urgency reasons, or instructions for the faculty member..."
+              placeholder="State any specific guidelines, urgency justifications, or queries for the recipient..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={3}
             />
+            <div style={{ fontSize: '12px', color: 'var(--gray-400)', marginTop: '4px' }}>
+              This will automatically initiate the private message thread in the <code>messages</code> table.
+            </div>
           </div>
         </div>
 
@@ -443,13 +637,18 @@ export default function SubmitDocument() {
             type="submit"
             className="btn btn-primary"
             disabled={isSubmitting}
-            style={{ minWidth: '160px' }}
+            style={{ minWidth: '180px' }}
           >
-            {isSubmitting ? 'Submitting...' : 'Submit Document'}
+            {isSubmitting ? (
+              <span>Submitting Document...</span>
+            ) : (
+              <>
+                <Send size={15} /> Submit for Approval
+              </>
+            )}
           </button>
         </div>
       </form>
     </div>
   );
 }
-

@@ -10,7 +10,7 @@ export default function StudentProfile() {
         <div className="page-title-group">
           <h1>Student Profile</h1>
           <p>
-            Your registered academic identity and student records on CampusFlow.
+            Your registered academic identity and student records on RoutePulse.
           </p>
         </div>
       </div>

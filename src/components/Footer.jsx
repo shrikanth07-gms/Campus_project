@@ -6,9 +6,12 @@ function Footer() {
     <footer className="footer" style={{ backgroundColor: '#ffffff', borderTop: '1px solid #e8edf5', padding: '50px 9% 30px' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '30px', textAlign: 'left', marginBottom: '40px' }}>
         <div>
-          <div className="footer-brand" style={{ justifyContent: 'flex-start', marginBottom: '12px' }}>
+          <div className="footer-brand" style={{ justifyContent: 'flex-start', marginBottom: '8px' }}>
             <GraduationCap size={24} />
-            <span>CampusFlow</span>
+            <span>RoutePulse</span>
+          </div>
+          <div style={{ fontSize: '12px', color: '#2563eb', fontWeight: 600, marginBottom: '8px' }}>
+            Fast, trackable approvals from submission to signature.
           </div>
           <p style={{ margin: '0 0 14px', fontSize: '13px', color: '#64748b', lineHeight: 1.6 }}>
             Centralized university document submission, verification, and multi-stage approval management system.
@@ -48,7 +51,7 @@ function Footer() {
             Institutional Compliance
           </h4>
           <p style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.6, margin: 0 }}>
-            CampusFlow implements role-based access control, private document storage, and verified audit trails.
+            RoutePulse implements role-based access control, private document storage, and verified audit trails.
           </p>
           <div style={{ marginTop: '12px', fontSize: '11px', color: '#94a3b8' }}>
             First University Supported: REVA University, Bengaluru, Karnataka, India.
@@ -58,7 +61,7 @@ function Footer() {
 
       <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#94a3b8' }}>
         <div>
-          © 2026 CampusFlow Platform. All rights reserved.
+          © 2026 RoutePulse Platform. All rights reserved.
         </div>
         <div>
           Designed for modern university academic workflows.
