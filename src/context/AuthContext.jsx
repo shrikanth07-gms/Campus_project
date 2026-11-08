@@ -4,6 +4,23 @@ import { DEMO_PRESET_USERS, DEMO_COLLEGE } from '../services/mockData';
 
 const AuthContext = createContext(null);
 
+// Map branch name → seed UUID for the profiles upsert
+const BRANCH_NAME_TO_ID = {
+  'Computer Science and Engineering': 'c1111111-1111-1111-1111-111111111111',
+  'Artificial Intelligence & Data Science': 'c2222222-2222-2222-2222-222222222222',
+  'Electronics and Communication Engineering': 'c3333333-3333-3333-3333-333333333333',
+  'Mechanical Engineering': 'c4444444-4444-4444-4444-444444444444',
+  'Master of Business Administration': 'c5555555-5555-5555-5555-555555555555',
+};
+
+const BRANCH_NAME_TO_DEPT = {
+  'Computer Science and Engineering': 'b1111111-1111-1111-1111-111111111111',
+  'Artificial Intelligence & Data Science': 'b1111111-1111-1111-1111-111111111111',
+  'Electronics and Communication Engineering': 'b2222222-2222-2222-2222-222222222222',
+  'Mechanical Engineering': 'b3333333-3333-3333-3333-333333333333',
+  'Master of Business Administration': 'b4444444-4444-4444-4444-444444444444',
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -11,7 +28,6 @@ export function AuthProvider({ children }) {
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
-    // Check if Supabase credentials are functional
     if (isSupabaseConfigured && supabase) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
@@ -35,29 +51,68 @@ export function AuthProvider({ children }) {
 
       return () => subscription.unsubscribe();
     } else {
-      // Offline / LocalStorage Demo Mode
       loadStoredDemoUser();
       setLoading(false);
     }
   }, []);
 
-  const fetchSupabaseProfile = async (userId) => {
+  const fetchSupabaseProfile = async (userId, fallbackMeta = null) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      setProfile(data);
+
+      if (data) {
+        setProfile(data);
+        return data;
+      }
+
+      if (fallbackMeta) {
+        const healed = await upsertProfile(userId, fallbackMeta);
+        if (healed) { setProfile(healed); return healed; }
+      }
+      return null;
     } catch (err) {
-      console.warn('Error fetching Supabase profile, falling back:', err.message);
+      console.warn('Error fetching Supabase profile:', err.message);
+      return null;
     }
   };
 
+  const upsertProfile = async (userId, { email, full_name, srn, branch, phone, role = 'student' }) => {
+    const branchId = BRANCH_NAME_TO_ID[branch] || null;
+    const deptId = BRANCH_NAME_TO_DEPT[branch] || 'b1111111-1111-1111-1111-111111111111';
+
+    const payload = {
+      id: userId,
+      college_id: DEMO_COLLEGE.id,
+      full_name: full_name || email.split('@')[0],
+      email: email,
+      srn: srn || null,
+      phone: phone || null,
+      role: role,
+      branch_id: branchId,
+      department_id: deptId,
+    };
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert(payload, { onConflict: 'id' })
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Profile upsert error:', error.message);
+      return null;
+    }
+    return data;
+  };
+
   const loadStoredDemoUser = () => {
-    const saved = localStorage.getItem('routepulse_current_user') || localStorage.getItem('campusflow_current_user');
+    const saved = localStorage.getItem('routepulse_current_user');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -66,17 +121,14 @@ export function AuthProvider({ children }) {
         return;
       } catch {
         localStorage.removeItem('routepulse_current_user');
-        localStorage.removeItem('campusflow_current_user');
       }
     }
-    // Default to student persona for instant testability
     const defaultStudent = DEMO_PRESET_USERS.student;
     setUser(defaultStudent);
     setProfile(defaultStudent);
     localStorage.setItem('routepulse_current_user', JSON.stringify(defaultStudent));
   };
 
-  // Student Registration
   const registerStudent = async ({ fullName, email, password, srn, branch, phone }) => {
     setAuthError(null);
     setLoading(true);
@@ -98,37 +150,20 @@ export function AuthProvider({ children }) {
           }
         });
         if (error) throw error;
-        setLoading(false);
-        return { success: true, user: data.user };
-      } else {
-        // LocalStorage mock registration
-        const newStudent = {
-          id: `student-${Date.now()}`,
-          email,
-          full_name: fullName,
-          role: 'student',
-          srn,
-          branch_name: branch,
-          phone,
-          college_id: DEMO_COLLEGE.id,
-          avatar_url: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName)}`,
-          created_at: new Date().toISOString()
-        };
 
-        // Save into registered students list
-        const storedStudents = JSON.parse(
-          localStorage.getItem('routepulse_registered_students') ||
-          localStorage.getItem('campusflow_registered_students') ||
-          '[]'
-        );
-        storedStudents.push({ ...newStudent, password });
-        localStorage.setItem('routepulse_registered_students', JSON.stringify(storedStudents));
+        if (data.user) {
+          await upsertProfile(data.user.id, {
+            email,
+            full_name: fullName,
+            srn,
+            branch,
+            phone,
+            role: 'student'
+          });
+        }
 
-        setUser(newStudent);
-        setProfile(newStudent);
-        localStorage.setItem('routepulse_current_user', JSON.stringify(newStudent));
         setLoading(false);
-        return { success: true, user: newStudent };
+        return { success: true, user: data.user, prefillEmail: email };
       }
     } catch (err) {
       setAuthError(err.message || 'Registration failed.');
@@ -137,45 +172,35 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Login
   const login = async (email, password, expectedRole = null) => {
     setAuthError(null);
     setLoading(true);
 
     try {
       if (isSupabaseConfigured && supabase) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+
         setUser(data.user);
-        await fetchSupabaseProfile(data.user.id);
+        const meta = data.user.user_metadata || {};
+        const fetched = await fetchSupabaseProfile(data.user.id, {
+          email: data.user.email,
+          full_name: meta.full_name || data.user.email.split('@')[0],
+          srn: meta.srn || null,
+          branch: meta.branch || 'Computer Science and Engineering',
+          phone: meta.phone || null,
+          role: meta.role || 'student',
+        });
+
+        const resolvedRole = fetched?.role || meta.role || 'student';
+        if (expectedRole && expectedRole !== resolvedRole &&
+          !(expectedRole === 'faculty' && ['faculty', 'hod', 'director'].includes(resolvedRole))) {
+          await supabase.auth.signOut();
+          throw new Error(`This portal requires ${expectedRole} access. Your account role is: ${resolvedRole}`);
+        }
+
         setLoading(false);
         return { success: true };
-      } else {
-        // Demo Mode Check: check preset users or registered students
-        const allPresets = Object.values(DEMO_PRESET_USERS);
-        const registered = JSON.parse(
-          localStorage.getItem('routepulse_registered_students') ||
-          localStorage.getItem('campusflow_registered_students') ||
-          '[]'
-        );
-        const candidate = [...allPresets, ...registered].find(u => u.email.toLowerCase() === email.toLowerCase());
-
-        if (candidate) {
-          if (expectedRole && expectedRole !== candidate.role && !(expectedRole === 'faculty' && ['faculty', 'hod', 'director'].includes(candidate.role))) {
-            throw new Error(`This portal is for ${expectedRole} access. Your account has role: ${candidate.role}`);
-          }
-          setUser(candidate);
-          setProfile(candidate);
-          localStorage.setItem('routepulse_current_user', JSON.stringify(candidate));
-          setLoading(false);
-          return { success: true };
-        } else {
-          // Allow demo login with any matching email or throw clear error
-          throw new Error('Invalid email or password. Use one of the Demo Presets or registered credentials.');
-        }
       }
     } catch (err) {
       setAuthError(err.message || 'Login failed.');
@@ -184,7 +209,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Quick switch demo user persona (Student, Faculty, HOD, Director, Admin)
   const switchDemoUser = (roleKey) => {
     const selected = DEMO_PRESET_USERS[roleKey];
     if (selected) {
@@ -194,38 +218,26 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Logout
   const logout = async () => {
-    if (isSupabaseConfigured && supabase) {
-      await supabase.auth.signOut();
-    }
+    if (isSupabaseConfigured && supabase) await supabase.auth.signOut();
     localStorage.removeItem('routepulse_current_user');
-    localStorage.removeItem('campusflow_current_user');
     setUser(null);
     setProfile(null);
   };
 
-  const value = {
-    user,
-    profile,
-    role: profile?.role || user?.role || 'student',
-    loading,
-    authError,
-    login,
-    registerStudent,
-    logout,
-    switchDemoUser,
-    isSupabaseMode: isSupabaseConfigured
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{
+      user, profile, role: profile?.role || user?.role || 'student',
+      loading, authError, login, registerStudent, logout, switchDemoUser,
+      isSupabaseMode: isSupabaseConfigured
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 }
-

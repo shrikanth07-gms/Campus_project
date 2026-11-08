@@ -1,5 +1,6 @@
 -- =====================================================================
--- CAMPUSFLOW: SECURE MULTI-TENANT DATABASE SCHEMA & WORKFLOW ENGINE
+-- ROUTEPULSE: SECURE MULTI-TENANT DATABASE SCHEMA & WORKFLOW ENGINE
+-- Fast, trackable approvals from submission to signature.
 -- Target: Supabase (PostgreSQL 15+)
 -- First Institution Supported: REVA University, Bengaluru, Karnataka, India
 -- Architected for Enterprise Multi-University Scaling & Zero-Trust RLS
@@ -950,12 +951,13 @@ BEGIN
 END $$;
 
 -- Storage RLS (Checked if storage.objects exists)
+-- NOTE: Supabase enables Row Level Security on storage.objects by default.
+-- Do NOT execute "ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY"
+-- because storage.objects is owned by supabase_storage_admin (causes error 42501).
 DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = 'storage' AND tablename = 'objects') THEN
-        ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
-
-        -- Read policy: Only submission participants can read files from storage
+        -- Read policy: Only submission participants and college members can read files from storage
         DROP POLICY IF EXISTS "Submission documents storage select" ON storage.objects;
         CREATE POLICY "Submission documents storage select" ON storage.objects
         FOR SELECT TO authenticated
@@ -972,25 +974,37 @@ BEGIN
                           OR public.is_college_admin(s.college_id)
                       )
                 )
+                OR (storage.foldername(name))[1] = public.get_my_college_id()::text
             )
         );
 
-        -- Upload policy: Students and Reviewers for that submission
+        -- Upload policy: Authenticated students and reviewers can upload document files
         DROP POLICY IF EXISTS "Submission documents storage insert" ON storage.objects;
         CREATE POLICY "Submission documents storage insert" ON storage.objects
         FOR INSERT TO authenticated
         WITH CHECK (
             bucket_id IN ('submission-documents', 'student-documents')
+            AND auth.uid() IS NOT NULL
+        );
+
+        -- Update policy
+        DROP POLICY IF EXISTS "Submission documents storage update" ON storage.objects;
+        CREATE POLICY "Submission documents storage update" ON storage.objects
+        FOR UPDATE TO authenticated
+        USING (
+            bucket_id IN ('submission-documents', 'student-documents')
+            AND auth.uid() IS NOT NULL
+        );
+
+        -- Delete policy: Admin or college-scoped deletion
+        DROP POLICY IF EXISTS "Submission documents storage delete" ON storage.objects;
+        CREATE POLICY "Submission documents storage delete" ON storage.objects
+        FOR DELETE TO authenticated
+        USING (
+            bucket_id IN ('submission-documents', 'student-documents')
             AND (
-                EXISTS (
-                    SELECT 1 FROM public.submissions s
-                    WHERE s.id::text = (storage.foldername(name))[2]
-                      AND (
-                          (s.student_id = auth.uid() AND s.status IN ('submitted', 'correction_required'))
-                          OR public.can_review_submission(s.id)
-                          OR public.is_college_admin(s.college_id)
-                      )
-                )
+                (storage.foldername(name))[1] = public.get_my_college_id()::text
+                OR public.is_college_admin(public.get_my_college_id())
             )
         );
     END IF;
